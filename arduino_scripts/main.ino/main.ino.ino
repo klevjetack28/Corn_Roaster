@@ -20,7 +20,7 @@ enum StateProgram {
 struct Context {
   StateProgram state;
   StateProgram previous;
-  double time;
+  double timer;
   double temp;
   double speed;
 };
@@ -42,13 +42,21 @@ void checkButtons() {
   }
 }
 
+void initContext() {
+  context.state = StateProgram::SETUP;
+  context.previous = NULL;
+  context.timer = 0.0;
+  context.temp = 0.0;
+  context.speed = 0.0;
+}
+
 void setup() {
   pinMode(ACTUATORS, INPUT_PULLUP); // Actuator Button
   pinMode(START_BUTTON, INPUT_PULLUP); // Start Button
   pinMode(PAUSE_BUTTON, INPUT_PULLUP); // Pause Button
   pinMode(RESET_BUTTON, INPUT_PULLUP); // Reset Button
   
-  
+  initContext();
 }
 
 void loop() {
