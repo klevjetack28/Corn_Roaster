@@ -121,18 +121,17 @@ void loop() {
         // TODO: pauseLCD();
         setPotentiometers();
         checkTimer();
-        // TODO: Turn Off Relay
-        
+        relayOff();
       break;
     case StateProgram::COOKING:
         // TODO: cookingLCD();
         // TODO: Motor Controller Function
         // TODO: Solenoid Valve Controller Function
-        // TODO: Turn On Relay
+        relayOn();
       break;
     case StateProgram::DONE:
         // TODO: doneLCD();
-        // TODO: Turn Off Relay
+        relayOff();
         buzzerOn();
       break;
   }
