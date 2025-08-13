@@ -127,6 +127,7 @@ void loop() {
         // TODO: cookingLCD();
         // TODO: Motor Controller Function
         // TODO: Solenoid Valve Controller Function
+        // TODO: Play Timer
         relayOn();
       break;
     case StateProgram::DONE:
