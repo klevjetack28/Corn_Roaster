@@ -17,7 +17,20 @@ enum StateProgram {
   COOKING
 };
 
+struct Context {
+  StateProgram state;
+  StateProgram previous;
+  double time;
+  double temp;
+  double speed;
+};
+Context context;
+
 StateProgram stateProgram = StateProgram::SETUP;
+
+double getPotentiometer(int pinNumber) {
+    return analogRead(pinNumber);
+}
 
 void checkButtons() {
   if (digitalRead(START_BUTTON)) {
@@ -34,6 +47,7 @@ void setup() {
   pinMode(START_BUTTON, INPUT_PULLUP); // Start Button
   pinMode(PAUSE_BUTTON, INPUT_PULLUP); // Pause Button
   pinMode(RESET_BUTTON, INPUT_PULLUP); // Reset Button
+  
   
 }
 
