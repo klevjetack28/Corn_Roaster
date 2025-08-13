@@ -60,6 +60,13 @@ void initContext() {
   context.speed = 0.0;
 }
 
+void initLCD() {
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Hello World!");
+}
+
 void setup() {
   pinMode(ACTUATORS, INPUT_PULLUP); // Actuator Button
   pinMode(START_BUTTON, INPUT_PULLUP); // Start Button
@@ -71,6 +78,7 @@ void setup() {
   pinMode(SPEED_POT, INPUT);
   
   initContext();
+  initLCD();
 }
 
 void loop() {
