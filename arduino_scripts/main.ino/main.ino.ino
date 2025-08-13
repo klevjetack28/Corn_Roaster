@@ -3,13 +3,14 @@
 #define START_BUTTON 1
 // Some PWM pin for buzzer
 #define BUZZER 4 
-// LCD with driver
-#define WIRE1 A0
-#define WIRE2 A1
-// ---------------
 #define TEMP_POT A2
 #define TIMER_POT A3
 #define SPEED_POT A4
+
+#define LCD_WIDTH 16
+#define LCD_HEIGHT 2
+#define LCD_ADDRESS 0x27
+#define MSG_BUF LCD_HEIGHT
 
 enum StateProgram {
   //IDLE,
@@ -25,7 +26,7 @@ struct Context {
   double timer;
   double temp;
   double speed;
-  // LCD
+  LiquidCrystal_I2C lcd;
 };
 Context context;
 
@@ -58,6 +59,7 @@ void initContext() {
   context.timer = 0.0;
   context.temp = 0.0;
   context.speed = 0.0;
+  context.lcd(LCD_ADDRESS, LCD_WIDTH, LCD_HEIGHT);
 }
 
 void initLCD() {
