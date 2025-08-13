@@ -1,12 +1,17 @@
+// Digital
 #define RESET_BUTTON 3
 #define PAUSE_BUTTON 2
 #define START_BUTTON 1
 // Some PWM pin for buzzer
 #define BUZZER 4 
+#define RELAY 5
+
+// Analog 
 #define TEMP_POT A2
 #define TIMER_POT A3
 #define SPEED_POT A4
 
+// LCD
 #define LCD_WIDTH 16
 #define LCD_HEIGHT 2
 #define LCD_ADDRESS 0x27
@@ -29,6 +34,26 @@ struct Context {
   LiquidCrystal_I2C lcd;
 };
 Context context;
+
+void relayOn() {
+  digitalWrite(RELAY, HIGH);
+}
+
+void relayOff() {
+  digitalWrite(RELAY, LOW);
+}
+
+void buzzerOn() {
+  digitalWrite(BUZZER, HIGH);
+}
+
+void buzzerOff() {
+  digitalWrite(BUZZER, LOW);
+}
+
+void checkTimer() {
+  // TODO: If I change the time during pause I want to check if new time is less than time left if it is set it to the new time otherwise keep it there. 
+}
 
 double getPotentiometer(int pinNumber) {
   return analogRead(pinNumber);
@@ -89,21 +114,26 @@ void loop() {
   switch(stateProgram) {
     case StateProgram::SETUP:
         // TODO: setupLCD();
-        // TODO: setPotentiometers();
+        setPotentiometers();
+        buzzerOff();
       break;
     case StateProgram::PAUSE:
         // TODO: pauseLCD();
-        // TODO: setPotentiometers();
-        // TODO: Motor Controller Function
-        // TODO: Solenoid Valve Controller Function
+        setPotentiometers();
+        checkTimer();
+        // TODO: Turn Off Relay
+        
       break;
     case StateProgram::COOKING:
         // TODO: cookingLCD();
-        // TODO: Turn Off Relay
+        // TODO: Motor Controller Function
+        // TODO: Solenoid Valve Controller Function
+        // TODO: Turn On Relay
       break;
     case StateProgram::DONE:
         // TODO: doneLCD();
-        // TODO: buzzer();
+        // TODO: Turn Off Relay
+        buzzerOn();
       break;
   }
 }
