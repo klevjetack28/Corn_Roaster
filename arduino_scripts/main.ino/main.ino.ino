@@ -1,13 +1,15 @@
 #define RESET_BUTTON 3
 #define PAUSE_BUTTON 2
 #define START_BUTTON 1
+// Some PWM pin for buzzer
+#define BUZZER 4 
 // LCD with driver
 #define WIRE1 A0
 #define WIRE2 A1
 // ---------------
-#define TEMP_POTENTIOMETER A2
-#define TIMER_POTENTIOMETER A3
-#define SPEED_POTENTIOMETER A4
+#define TEMP_POT A2
+#define TIMER_POT A3
+#define SPEED_POT A4
 
 enum StateProgram {
   //IDLE,
@@ -23,22 +25,30 @@ struct Context {
   double timer;
   double temp;
   double speed;
+  // LCD
 };
 Context context;
 
-StateProgram stateProgram = StateProgram::SETUP;
-
 double getPotentiometer(int pinNumber) {
-    return analogRead(pinNumber);
+  return analogRead(pinNumber);
+}
+
+void setPotentiometers() {
+  getPotentiometer(TIMER_POT);
+  getPotentiometer(TEMP_POT);
+  getPotentiometer(SPEED_POT);
 }
 
 void checkButtons() {
   if (digitalRead(START_BUTTON)) {
-    stateProgram = StateProgram::COOKING;
+    context.previous = context.state;
+    context.state = StateProgram::COOKING;
   } else if (digitalRead(PAUSE_BUTTON)) {
-    stateProgram = StateProgram::PAUSE;
+    context.previous = context.state;
+    context.state = StateProgram::PAUSE;
   } else if (digitalRead(RESET_BUTTON)) {
-    statePogram = StateProgram::SETUP;
+    context.previous = context.state;
+    context.state = StateProgram::SETUP;
   }
 }
 
@@ -55,6 +65,10 @@ void setup() {
   pinMode(START_BUTTON, INPUT_PULLUP); // Start Button
   pinMode(PAUSE_BUTTON, INPUT_PULLUP); // Pause Button
   pinMode(RESET_BUTTON, INPUT_PULLUP); // Reset Button
+
+  pinMode(TIMER_POT, INPUT);
+  pinmode(TEMP_POT, INPUT);
+  pinMode(SPEED_POT, INPUT);
   
   initContext();
 }
