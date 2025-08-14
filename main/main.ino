@@ -18,7 +18,6 @@
 #define MSG_BUF LCD_HEIGHT
 
 enum StateProgram {
-  //IDLE,
   SETUP,
   PAUSE,
   DONE,
@@ -29,11 +28,24 @@ struct Context {
   StateProgram state;
   StateProgram previous;
   double timer;
+  double timeLeft;
   double temp;
   double speed;
   LiquidCrystal_I2C lcd;
+  unsigned long deltaTime;
 };
 Context context;
+
+void initContext() {
+  context.state = StateProgram::SETUP;
+  context.previous = NULL;
+  context.timer = 0.0;
+  context.timeLeft = 0.0;
+  context.temp = 0.0;
+  context.speed = 0.0;
+  context.lcd(LCD_ADDRESS, LCD_WIDTH, LCD_HEIGHT);
+  context.deltaTime = 0.0;
+}
 
 void relayOn() {
   digitalWrite(RELAY, HIGH);
@@ -51,8 +63,28 @@ void buzzerOff() {
   digitalWrite(BUZZER, LOW);
 }
 
-void checkTimer() {
-  // TODO: If I change the time during pause I want to check if new time is less than time left if it is set it to the new time otherwise keep it there. 
+void setTimer(double potentiometerValue) {
+  // TODO: Used to translate the timer potentiometer value into seconds
+  // TODO: Chcek if new time is less than or equal to time left if it is change both otherwise just chhange context.timer
+}
+
+void setTemp(double potentiometerValue) {
+  // TODO: Used to translate the temp potentiometer value into some output for solenoid valve
+}
+
+void setSpeed(double potentiometerValue) {
+  // TODO: Used to translate the speed potentiometer value into speed value for motors
+}
+
+void countDownTimer() {
+  unsigned long now = millis();
+  if (now - context.deltaTime >= 1000) {
+    context.timeLeft -= 1
+  }
+}
+
+bool checkTimerDone() {
+  return context.timeLeft == 0;
 }
 
 double getPotentiometer(int pinNumber) {
@@ -60,31 +92,26 @@ double getPotentiometer(int pinNumber) {
 }
 
 void setPotentiometers() {
-  getPotentiometer(TIMER_POT);
-  getPotentiometer(TEMP_POT);
-  getPotentiometer(SPEED_POT);
+  setTimer(getPotentiometer(TIMER_POT));
+  setTemp(getPotentiometer(TEMP_POT));
+  setSpeed(getPotentiometer(SPEED_POT));
 }
 
 void checkButtons() {
   if (digitalRead(START_BUTTON)) {
     context.previous = context.state;
     context.state = StateProgram::COOKING;
+    relayOn();
   } else if (digitalRead(PAUSE_BUTTON)) {
     context.previous = context.state;
     context.state = StateProgram::PAUSE;
+    relayOff();
   } else if (digitalRead(RESET_BUTTON)) {
     context.previous = context.state;
     context.state = StateProgram::SETUP;
+    initContext();
+    relayOff();
   }
-}
-
-void initContext() {
-  context.state = StateProgram::SETUP;
-  context.previous = NULL;
-  context.timer = 0.0;
-  context.temp = 0.0;
-  context.speed = 0.0;
-  context.lcd(LCD_ADDRESS, LCD_WIDTH, LCD_HEIGHT);
 }
 
 void initLCD() {
@@ -101,7 +128,7 @@ void setup() {
   pinMode(RESET_BUTTON, INPUT_PULLUP); // Reset Button
 
   pinMode(TIMER_POT, INPUT);
-  pinmode(TEMP_POT, INPUT);
+  pinMode(TEMP_POT, INPUT);
   pinMode(SPEED_POT, INPUT);
   
   initContext();
@@ -111,6 +138,9 @@ void setup() {
 void loop() {
   checkButtons();
   // TODO: Temperature Sensor
+
+  // Potentially need to run this 10fps or some other rate.
+  
   switch(stateProgram) {
     case StateProgram::SETUP:
         // TODO: setupLCD();
@@ -120,15 +150,17 @@ void loop() {
     case StateProgram::PAUSE:
         // TODO: pauseLCD();
         setPotentiometers();
-        checkTimer();
-        relayOff();
+        checkTimerValue();
       break;
     case StateProgram::COOKING:
         // TODO: cookingLCD();
         // TODO: Motor Controller Function
         // TODO: Solenoid Valve Controller Function
-        // TODO: Play Timer
-        relayOn();
+        countDownTimer();
+        if (checkTimerDone()) {
+          context.previous = context.state;
+          context.state = StateProgram::DONE;
+        }
       break;
     case StateProgram::DONE:
         // TODO: doneLCD();
