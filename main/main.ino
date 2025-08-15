@@ -54,6 +54,7 @@ struct Context {
   double speed;
   LiquidCrystal_I2C lcd;
   unsigned long lastTick;
+  unsigned long lcdFrames;
 
   Context()
   : state(StateProgram::SETUP),
@@ -125,6 +126,11 @@ void countDownTimer() {
   }
 }
 
+void getTime(double time, int& minutes, int& seconds) {
+  minutes = time / 60;
+  seconds = time % 60;
+}
+
 void setTimeLeft() {
   if (!context.timerSet) {
     context.timerSet = true;
@@ -176,19 +182,31 @@ void initLCD() {
 
 void mainLCD() {
   context.lcd.setCursor(0, 0);
-  // "TIME   TEMP  SPD"
-  // "30:00  150   5.5"
+  context.lcd.print("TIME   TEMP  SPD");
+  context.lcd.setCursor(1, 0);
+  char meta[LCD_WIDTH];
+  int minutes, seconds;
+  getTime(context.timer, &minutes, &seconds);
+  sprintf(meta, "%d:%d  %d   %f", minutes, seconds, comtext.temp, context.speed);
+  context.lcd.print(meta);
 }
 
 void cookingLCD() {
   context.lcd.setCursor(0, 0);
-  // "TIME LEFT       " slides across screen like banner for fun
-  // "    30:00:00    " maybe add milliseconds can technically can and it aligns better with 16 width lcd if to mich just do mins and seconds
+  context.lcd.print(banner("TIME LEFT       "));
+  context.lcd.setCursor(1, 0);
+  char time[LCD_WIDTH];
+  int minutes, seconds;
+  getTime(context.timeLeft, &minutes, &seconds);
+  sprintf(time, "      %d:%d     ", minutes, seconds);
+  context.lcd.print(time);
 }
 
 void doneLCD() {
   context.lcd.setCursor(0, 0);
-  // "DONE    DONE    " do on both rows with offset of 4 characters
+  context.lcd.print(banner("DONE    DONE    "));
+  context.lcd.setCursor(1, 0),
+  context.lcd.print(banner("    DONE    DONE"));
 }
 
 void setup() {
