@@ -66,7 +66,8 @@ struct Context {
     temp(0.0f),
     speed(0.0f),
     lcd(LCD_ADDRESS, LCD_WIDTH, LCD_HEIGHT),
-    lastTick(0)
+    lastTick(0),
+    lcdFrames(0)
   {}
 } context;
 
@@ -79,7 +80,8 @@ void resetContext() {
   context.timerSet = false;
   context.temp = 0.0;
   context.speed = 0.0;
-  context.lastTick = 0.0;
+  context.lastTick = 0;
+  context.lastFrames = 0;
 }
 
 void relayOn() {
@@ -209,6 +211,18 @@ void doneLCD() {
   context.lcd.print(banner("    DONE    DONE"));
 }
 
+char* banner(char* in) {
+  char out[LCD_WIDTH];
+  int j = 0;
+  for (int i = context.lcdFrames; i < LCD_WIDTH; i++, j++) {
+    out[j] = in[i];
+  }
+  for (int i = 0; i < context.lcdFrames; i++, j++) {
+    out[j] = in[i];
+  }
+  return out;
+}
+
 void setup() {
   Serial.begin(9600);
   
@@ -231,16 +245,16 @@ void loop() {
   // Potentially need to run this 10fps or some other rate.
   switch(context.state) {
     case StateProgram::SETUP:
-        // TODO: mainLCD();
+        mainLCD();
         setPotentiometers();
         buzzerOff();
       break;
     case StateProgram::PAUSE:
-        // TODO: mainLCD();
+        mainLCD();
         setPotentiometers();
       break;
     case StateProgram::COOKING:
-        // TODO: cookingLCD();
+        cookingLCD();
         // TODO: Motor Controller Function
         // TODO: Solenoid Valve Controller Function
         countDownTimer();
@@ -250,7 +264,7 @@ void loop() {
         }
       break;
     case StateProgram::DONE:
-        // TODO: doneLCD();
+        doneLCD();
         Serial.println("BUZZZZZZZZ");
         relayOff();
         buzzerOn();
