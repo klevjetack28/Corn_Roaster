@@ -136,6 +136,7 @@ void mainLCD() {
 void cookingLCD() {
   lcd.setCursor(0, 0);
   // "TIME LEFT       " slides across screen like banner for fun
+  // "    30:00:00    " maybe add milliseconds can technically can and it aligns better with 16 width lcd if to mich just do mins and seconds
 }
 
 void doneLCD() {
