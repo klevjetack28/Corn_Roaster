@@ -66,14 +66,20 @@ void buzzerOff() {
 void setTimer(double potentiometerValue) {
   // TODO: Used to translate the timer potentiometer value into seconds
   // TODO: Chcek if new time is less than or equal to time left if it is change both otherwise just chhange context.timer
+  // TODO: increment in increments of 5 seconds. 
+  // TODO: Max time of 60:00 (60 minutes)
 }
 
 void setTemp(double potentiometerValue) {
   // TODO: Used to translate the temp potentiometer value into some output for solenoid valve
+  // TODO: Increment in increments of 1
+  // TODO: Max temp unknown
 }
 
 void setSpeed(double potentiometerValue) {
   // TODO: Used to translate the speed potentiometer value into speed value for motors
+  // TODO: Increase in increments of 0.1
+  // TODO: Max speed of 10.0
 }
 
 void countDownTimer() {
@@ -121,21 +127,20 @@ void initLCD() {
   lcd.print("Hello World!");
 }
 
-void setupLCD() {
+void mainLCD() {
   lcd.setCursor(0, 0);
-  
-}
-
-void pauseLCD() {
-
+  // "TIME   TEMP  SPD"
+  // "30:00  150   5.5"
 }
 
 void cookingLCD() {
-
+  lcd.setCursor(0, 0);
+  // "TIME LEFT       " slides across screen like banner for fun
 }
 
 void doneLCD() {
-
+  lcd.setCursor(0, 0);
+  // "DONE    DONE    " do on both rows with offset of 4 characters
 }
 
 void setup() {
@@ -160,12 +165,12 @@ void loop() {
   
   switch(stateProgram) {
     case StateProgram::SETUP:
-        // TODO: setupLCD();
+        // TODO: mainLCD();
         setPotentiometers();
         buzzerOff();
       break;
     case StateProgram::PAUSE:
-        // TODO: pauseLCD();
+        // TODO: mainLCD();
         setPotentiometers();
         checkTimerValue();
       break;
