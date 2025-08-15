@@ -99,16 +99,11 @@ void buzzerOff() {
 
 void setTimer(double potentiometerValue) {
   context.timer = (potentiometerValue / POTENTIOMETER_MAX) * MAX_TIMER;
-  Serial.println(context.timer);
-  // TODO: Used to translate the timer potentiometer value into seconds
   // TODO: Chcek if new time is less than or equal to time left if it is change both otherwise just chhange context.timer
   // TODO: increment in increments of 5 seconds. 
-  // TODO: Max time of 60:00 (60 minutes)
 }
 
 void setTemp(double potentiometerValue) {
-  Serial.print("Temp: ");
-  Serial.println(potentiometerValue);
   // TODO: Used to translate the temp potentiometer value into some output for solenoid valve
   // TODO: Increment in increments of 1
   // TODO: Max temp unknown
@@ -116,10 +111,9 @@ void setTemp(double potentiometerValue) {
 
 void setSpeed(double potentiometerValue) {
   Serial.print("Speed: ");
-  Serial.println(potentiometerValue);
-  // TODO: Used to translate the speed potentiometer value into speed value for motors
+  context.speed = (potentiometerValue / POTENTIOMETER_MAX) * MAX_SPEED;
+  Serial.println(context.speed);
   // TODO: Increase in increments of 0.1
-  // TODO: Max speed of 10.0
 }
 
 void countDownTimer() {
@@ -235,7 +229,6 @@ void loop() {
         if (checkTimerDone()) {
           context.previous = context.state;
           context.state = StateProgram::DONE;
-          Serial.println("DONE");
         }
       break;
     case StateProgram::DONE:
