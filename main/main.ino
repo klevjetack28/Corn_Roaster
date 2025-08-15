@@ -121,6 +121,23 @@ void initLCD() {
   lcd.print("Hello World!");
 }
 
+void setupLCD() {
+  lcd.setCursor(0, 0);
+  
+}
+
+void pauseLCD() {
+
+}
+
+void cookingLCD() {
+
+}
+
+void doneLCD() {
+
+}
+
 void setup() {
   pinMode(ACTUATORS, INPUT_PULLUP); // Actuator Button
   pinMode(START_BUTTON, INPUT_PULLUP); // Start Button
