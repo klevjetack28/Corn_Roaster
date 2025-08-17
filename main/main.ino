@@ -21,12 +21,11 @@
 #define LCD_WIDTH 16
 #define LCD_HEIGHT 2
 #define LCD_ADDRESS 0x27
-#define MSG_BUF LCD_HEIGHT
 
 // Constants
-#define POTENTIOMETER_MAX 1024
+#define POTENTIOMETER_MAX 1023
+#define TIMER_STEP 5
 #define MAX_TIMER 3600
-//#define MAX_TEMP XXX maybe 200 250?
 #define MAX_SPEED 10.0
 
 enum class StateProgram {
@@ -49,12 +48,13 @@ struct Context {
   Button lastButton;
   double timer;
   double timeLeft;
+  unsigned long lastTick;
   bool timerSet;
   double temp;
   double speed;
   LiquidCrystal_I2C lcd;
-  unsigned long lastTick;
   unsigned long lcdFrames;
+  unsigned long lastTickLCD;
 
   Context()
   : state(StateProgram::SETUP),
@@ -81,7 +81,7 @@ void resetContext() {
   context.temp = 0.0;
   context.speed = 0.0;
   context.lastTick = 0;
-  context.lastFrames = 0;
+  context.lcdFrames = 0;
 }
 
 void relayOn() {
@@ -101,21 +101,20 @@ void buzzerOff() {
 }
 
 void setTimer(double potentiometerValue) {
-  context.timer = (potentiometerValue / POTENTIOMETER_MAX) * MAX_TIMER;
+  static int32_t filter = -1;
+  if (filter < 0) {
+    filter = potentiometerValue;
+  }
+  filter = (filter * 7 + potentiometerValue) / 8;
+  
+  const int BUCKETS = MAX_TIMER / TIMER_STEP;
+  int32_t bucket = (filter * BUCKETS) / POTENTIOMETER_MAX;
+  context.timer = (int32_t)bucket * TIMER_STEP;
   // TODO: Chcek if new time is less than or equal to time left if it is change both otherwise just chhange context.timer
-  // TODO: increment in increments of 5 seconds. 
-}
-
-void setTemp(double potentiometerValue) {
-  // TODO: Used to translate the temp potentiometer value into some output for solenoid valve
-  // TODO: Increment in increments of 1
-  // TODO: Max temp unknown
 }
 
 void setSpeed(double potentiometerValue) {
-  Serial.print("Speed: ");
   context.speed = (potentiometerValue / POTENTIOMETER_MAX) * MAX_SPEED;
-  Serial.println(context.speed);
   // TODO: Increase in increments of 0.1
 }
 
@@ -124,13 +123,12 @@ void countDownTimer() {
   if (now - context.lastTick >= 1000) {
     context.timeLeft -= 1;
     context.lastTick = now;
-    Serial.println(context.timeLeft);
   }
 }
 
-void getTime(double time, int& minutes, int& seconds) {
-  minutes = time / 60;
-  seconds = time % 60;
+void getTime(int times, int& minutes, int& seconds) {
+  minutes = times / 60;
+  seconds = times % 60;
 }
 
 void setTimeLeft() {
@@ -150,7 +148,6 @@ double getPotentiometer(int pinNumber) {
 
 void setPotentiometers() {
   setTimer(getPotentiometer(TIMER_POT));
-  setTemp(getPotentiometer(TEMP_POT));
   setSpeed(getPotentiometer(SPEED_POT));
 }
 
@@ -185,41 +182,48 @@ void initLCD() {
 void mainLCD() {
   context.lcd.setCursor(0, 0);
   context.lcd.print("TIME   TEMP  SPD");
+  Serial.println("TIME   TEMP  SPD");
   context.lcd.setCursor(1, 0);
   char meta[LCD_WIDTH];
   int minutes, seconds;
-  getTime(context.timer, &minutes, &seconds);
-  sprintf(meta, "%d:%d  %d   %f", minutes, seconds, comtext.temp, context.speed);
+  getTime((int)context.timer, minutes, seconds);
+  sprintf(meta, "%d:%d  %f   %f", minutes, seconds, context.temp, context.speed);
   context.lcd.print(meta);
+  Serial.println(meta);
 }
 
 void cookingLCD() {
   context.lcd.setCursor(0, 0);
   context.lcd.print(banner("TIME LEFT       "));
+  Serial.println(banner("TIME LEFT       "));
   context.lcd.setCursor(1, 0);
-  char time[LCD_WIDTH];
+  char times[LCD_WIDTH];
   int minutes, seconds;
-  getTime(context.timeLeft, &minutes, &seconds);
-  sprintf(time, "      %d:%d     ", minutes, seconds);
-  context.lcd.print(time);
+  getTime((int)context.timeLeft, minutes, seconds);
+  sprintf(times, "      %d:%d     ", minutes, seconds);
+  context.lcd.print(times);
+  Serial.println(times);
 }
 
 void doneLCD() {
   context.lcd.setCursor(0, 0);
   context.lcd.print(banner("DONE    DONE    "));
+  Serial.println(banner("DONE    DONE    "));
   context.lcd.setCursor(1, 0),
   context.lcd.print(banner("    DONE    DONE"));
+  Serial.println(banner("    DONE    DONE"));
 }
 
-char* banner(char* in) {
-  char out[LCD_WIDTH];
+char* banner(const char* in) {
+  static char out[LCD_WIDTH + 1];
   int j = 0;
-  for (int i = context.lcdFrames; i < LCD_WIDTH; i++, j++) {
-    out[j] = in[i];
+  for (int i = context.lcdFrames; i < LCD_WIDTH; ++i) {
+    out[j++] = in[i];
   }
-  for (int i = 0; i < context.lcdFrames; i++, j++) {
-    out[j] = in[i];
+  for (int i = 0; i < context.lcdFrames; ++i) {
+    out[j++] = in[i];
   }
+  out[LCD_WIDTH] = '\0';
   return out;
 }
 
@@ -231,7 +235,6 @@ void setup() {
   pinMode(RESET_BUTTON, INPUT_PULLUP); // Reset Button
 
   pinMode(TIMER_POT, INPUT);
-  pinMode(TEMP_POT, INPUT);
   pinMode(SPEED_POT, INPUT);
 
   pinMode(BUZZER, OUTPUT);
@@ -265,9 +268,15 @@ void loop() {
       break;
     case StateProgram::DONE:
         doneLCD();
-        Serial.println("BUZZZZZZZZ");
+        //Serial.println("BUZZZZZZZZ");
         relayOff();
         buzzerOn();
       break;
+  }
+
+  unsigned long now = millis();
+  if (now - context.lastTickLCD >= 250) {
+      context.lcdFrames = (context.lcdFrames + 1) % LCD_WIDTH;
+      context.lastTickLCD = now;
   }
 }
