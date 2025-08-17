@@ -1,0 +1,3 @@
+# Corn Roaster 90000 TM
+
+This corn roaster in mainly for my girlfriend. My dD one day make mexican street corn and roasted it on the grill and she loved it. At the time we lived in an apartment woth no access to open flame cooking so she asked me "Can you make me a mini corn roaster?" She explained she couldn't find anythijg but industrial roaster online and nothing for personal use. I got to work woth a friend and we started developing the Corn Roaster 90000 TM. 
